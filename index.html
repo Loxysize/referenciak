@@ -1,56 +1,48 @@
-
 <!DOCTYPE html>
 <html lang="hu">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#101010">
-  <title>Burkolási referenciák</title>
+  <title>Burkolási referenciák | Szikora Márió</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-  <div class="logo">BURKOLÁSI <span>REFERENCIÁK</span></div>
-
-  <a class="header-contact"
-     href="https://loxysize.github.io/nevjegy/"
-     target="_blank"
-     rel="noopener noreferrer">
+<header class="site-header">
+  <div class="brand">
+    <span class="brand-name">Szikora Márió</span>
+    <span class="brand-title">BURKOLÁSI REFERENCIÁK</span>
+  </div>
+  <a class="header-contact" href="https://loxysize.github.io/nevjegy/">
     Elérhetőségem ↗
   </a>
 </header>
 
-<section class="hero">
-  <p class="eyebrow">MINŐSÉGI KIVITELEZÉS</p>
+<main>
+  <section class="hero">
+    <p class="eyebrow">MINŐSÉGI KIVITELEZÉS</p>
+    <h1>Gondosan kivitelezett <span>burkolási munkák.</span></h1>
+  </section>
 
-  <h1>
-    Gondosan kivitelezett <span>burkolási munkák.</span>
-  </h1>
-</section>
+  <section class="portfolio">
+    <div class="portfolio-heading">
+      <p class="eyebrow">REFERENCIÁK</p>
+    </div>
 
-<section id="munkak" class="portfolio">
+    <div class="filters">
+      <button class="active" onclick="filterWorks('all', this)">Összes</button>
+      <button onclick="filterWorks('furdoszoba', this)">Fürdőszobák</button>
+      <button onclick="filterWorks('terasz', this)">Teraszok</button>
+      <button onclick="filterWorks('padlo', this)">Padlóburkolások</button>
+      <button onclick="filterWorks('egyeb', this)">Egyéb</button>
+    </div>
 
-  <div class="portfolio-heading">
-    <p class="eyebrow">REFERENCIÁK</p>
-  </div>
-
-  <div class="filters">
-    <button class="active" onclick="filterWorks('all', this)">Összes</button>
-    <button onclick="filterWorks('furdoszoba', this)">Fürdőszobák</button>
-    <button onclick="filterWorks('terasz', this)">Teraszok</button>
-    <button onclick="filterWorks('padlo', this)">Padlóburkolások</button>
-    <button onclick="filterWorks('egyeb', this)">Egyéb</button>
-  </div>
-
-  <div id="gallery">
-    <p class="loading">Referenciaképek betöltése...</p>
-  </div>
-
-</section>
+    <div id="gallery"></div>
+  </section>
+</main>
 
 <footer>
-  BURKOLÁSI REFERENCIÁK © 2026
+  <p>© 2026 Szikora Márió – Burkolási referenciák</p>
 </footer>
 
 <script src="script.js"></script>
