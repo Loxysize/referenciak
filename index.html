@@ -1,0 +1,87 @@
+
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Burkolási referenciák</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo">BURKOLÁSI <span>REFERENCIÁK</span></div>
+  <a href="#munkak">Munkáim ↓</a>
+</header>
+
+<section class="hero">
+  <p class="eyebrow">MINŐSÉGI KIVITELEZÉS</p>
+  <h1>Gondosan kivitelezett<br><span>burkolási munkák.</span></h1>
+  <p>Válogatás az elkészült munkáimból.</p>
+  <a class="button" href="#munkak">Referenciák megtekintése ↓</a>
+</section>
+
+<section id="munkak" class="portfolio">
+  <p class="eyebrow">VÁLOGATÁS</p>
+  <h2>Legutóbbi munkáim.</h2>
+
+  <div class="filters">
+    <button onclick="filterWorks('all')">Összes</button>
+    <button onclick="filterWorks('furdo')">Fürdőszoba</button>
+    <button onclick="filterWorks('terasz')">Terasz</button>
+    <button onclick="filterWorks('egyeb')">Egyéb</button>
+  </div>
+
+  <div class="gallery">
+    <article class="work furdo">
+      <div class="photo">FOTÓ HELYE 01</div>
+      <h3>Fürdőszoba burkolás</h3>
+      <p>Fürdőszoba</p>
+    </article>
+
+    <article class="work terasz">
+      <div class="photo">FOTÓ HELYE 02</div>
+      <h3>Terasz burkolás</h3>
+      <p>Terasz</p>
+    </article>
+
+    <article class="work furdo">
+      <div class="photo">FOTÓ HELYE 03</div>
+      <h3>Zuhanyzó kialakítás</h3>
+      <p>Fürdőszoba</p>
+    </article>
+
+    <article class="work egyeb">
+      <div class="photo">FOTÓ HELYE 04</div>
+      <h3>Egyedi burkolási munka</h3>
+      <p>Egyéb</p>
+    </article>
+
+    <article class="work furdo">
+      <div class="photo">FOTÓ HELYE 05</div>
+      <h3>Padló- és falburkolás</h3>
+      <p>Fürdőszoba</p>
+    </article>
+
+    <article class="work terasz">
+      <div class="photo">FOTÓ HELYE 06</div>
+      <h3>Kültéri burkolás</h3>
+      <p>Terasz</p>
+    </article>
+  </div>
+</section>
+
+<section class="contact">
+  <p class="eyebrow">KAPCSOLAT</p>
+  <h2>Érdekel a munkám?</h2>
+  <p>Az elérhetőségeimet a digitális névjegyemen találod.</p>
+  <a class="button" href="https://loxysize.github.io/nevjegy/" target="_blank">
+    Digitális névjegy megnyitása ↗
+  </a>
+</section>
+
+<footer>BURKOLÁSI REFERENCIÁK © 2026</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
