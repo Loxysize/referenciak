@@ -69,7 +69,7 @@ body {
 
 .hero .eyebrow {
     color: #f2f1ed;
-    font-size: 25px;
+    font-size: 30px;
     line-height: 1.3;
     font-weight: 600;
     letter-spacing: 1px;
@@ -278,7 +278,7 @@ footer {
     }
 
     .hero .eyebrow {
-        font-size: 25px;
+        font-size: 29px;
     }
 
     .portfolio {
