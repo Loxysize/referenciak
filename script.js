@@ -1,20 +1,22 @@
 
 const categories = [
-    { folder: "furdoszoba", name: "Fürdőszoba" },
-    { folder: "terasz", name: "Terasz" },
-    { folder: "padlo", name: "Padló" },
-    { folder: "egyeb", name: "Egyéb" }
+    { folder: "furdoszoba", name: "Fürdőszobák" },
+    { folder: "terasz", name: "Teraszok" },
+    { folder: "padlo", name: "Padlóburkolások" },
+    { folder: "egyeb", name: "Egyéb munkák" }
 ];
 
 const gallery = document.getElementById("gallery");
 
-// Képek betöltése a GitHub mappáiból
+let allImages = [];
+let activeImages = [];
+let currentIndex = 0;
+
+// Képek betöltése GitHubról
 async function loadGallery() {
-    gallery.innerHTML = "<p>Képek betöltése...</p>";
+    gallery.innerHTML = '<p class="loading">Képek betöltése...</p>';
 
     try {
-        const allImages = [];
-
         for (const category of categories) {
             const apiUrl =
                 `https://api.github.com/repos/loxysize/referenciak/contents/${category.folder}?ref=main`;
@@ -22,13 +24,17 @@ async function loadGallery() {
             const response = await fetch(apiUrl);
 
             if (!response.ok) {
-                throw new Error(`Nem sikerült betölteni ezt a mappát: ${category.folder}`);
+                throw new Error(`Nem sikerült betölteni: ${category.folder}`);
             }
 
             const files = await response.json();
 
             const images = files.filter(file =>
                 /\.(webp|jpg|jpeg|png)$/i.test(file.name)
+            );
+
+            images.sort((a, b) =>
+                a.name.localeCompare(b.name, undefined, { numeric: true })
             );
 
             images.forEach(file => {
@@ -41,102 +47,187 @@ async function loadGallery() {
             });
         }
 
-        gallery.innerHTML = "";
+        renderGallery("all");
 
-        if (allImages.length === 0) {
-            gallery.innerHTML = "<p>Nem találhatók képek.</p>";
-            return;
-        }
+    } catch (error) {
+        console.error(error);
+        gallery.innerHTML =
+            '<p class="loading">Nem sikerült betölteni a képeket. Próbáld újra később.</p>';
+    }
+}
 
-        allImages.forEach((image, index) => {
+// Galéria megjelenítése
+function renderGallery(selectedCategory) {
+    gallery.innerHTML = "";
+
+    const selectedCategories = selectedCategory === "all"
+        ? categories
+        : categories.filter(category => category.folder === selectedCategory);
+
+    activeImages = [];
+
+    selectedCategories.forEach(category => {
+        const images = allImages.filter(image =>
+            image.folder === category.folder
+        );
+
+        if (images.length === 0) return;
+
+        const section = document.createElement("section");
+        section.className = "category-section";
+
+        const heading = document.createElement("h2");
+        heading.textContent = category.name;
+
+        const grid = document.createElement("div");
+        grid.className = "photo-grid";
+
+        section.appendChild(heading);
+        section.appendChild(grid);
+
+        images.forEach(image => {
             const article = document.createElement("article");
-            article.className = `work ${image.folder}`;
+            article.className = "work";
 
             const photo = document.createElement("div");
             photo.className = "photo";
 
             const img = document.createElement("img");
             img.src = image.url;
-            img.alt = `${image.categoryName} referencia ${index + 1}`;
+            img.alt = image.categoryName;
             img.loading = "lazy";
-            img.style.width = "100%";
-            img.style.height = "100%";
-            img.style.objectFit = "cover";
-            img.style.display = "block";
-            img.style.cursor = "pointer";
 
             photo.appendChild(img);
-
-            const title = document.createElement("h3");
-            title.textContent = image.categoryName + " burkolás";
-
-            const description = document.createElement("p");
-            description.textContent = image.categoryName;
-
             article.appendChild(photo);
-            article.appendChild(title);
-            article.appendChild(description);
+            grid.appendChild(article);
 
-            gallery.appendChild(article);
-
-            // Nagyítás kattintásra
-            img.addEventListener("click", () => {
-                openImage(image.url, img.alt);
+            photo.addEventListener("click", () => {
+                const index = activeImages.findIndex(item =>
+                    item.url === image.url
+                );
+                openImage(index);
             });
+
+            activeImages.push(image);
         });
 
-    } catch (error) {
-        console.error(error);
-        gallery.innerHTML =
-            "<p>Hiba történt a képek betöltésekor. Próbáld újra később.</p>";
+        gallery.appendChild(section);
+    });
+
+    if (gallery.innerHTML === "") {
+        gallery.innerHTML = '<p class="loading">Ebben a kategóriában még nincs kép.</p>';
     }
 }
 
 // Kategóriaszűrés
-function filterWorks(category) {
-    document.querySelectorAll(".work").forEach(work => {
-        work.style.display =
-            category === "all" || work.classList.contains(category)
-                ? ""
-                : "none";
+function filterWorks(category, button) {
+    document.querySelectorAll(".filters button").forEach(item => {
+        item.classList.remove("active");
     });
+
+    if (button) {
+        button.classList.add("active");
+    }
+
+    renderGallery(category);
 }
 
-// Teljes képernyős nagyítás
-function openImage(url, alt) {
-    const overlay = document.createElement("div");
+// Nagyított kép megnyitása
+function openImage(index) {
+    if (index < 0 || index >= activeImages.length) return;
 
-    overlay.style.position = "fixed";
-    overlay.style.inset = "0";
-    overlay.style.background = "rgba(0,0,0,0.96)";
+    currentIndex = index;
+
+    let overlay = document.getElementById("lightbox");
+
+    if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "lightbox";
+        overlay.innerHTML = `
+            <button class="lightbox-close" aria-label="Bezárás">×</button>
+            <button class="lightbox-prev" aria-label="Előző kép">‹</button>
+            <img class="lightbox-image" alt="">
+            <button class="lightbox-next" aria-label="Következő kép">›</button>
+            <div class="lightbox-counter"></div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        overlay.querySelector(".lightbox-close").addEventListener("click", closeImage);
+        overlay.querySelector(".lightbox-prev").addEventListener("click", previousImage);
+        overlay.querySelector(".lightbox-next").addEventListener("click", nextImage);
+
+        overlay.addEventListener("click", event => {
+            if (event.target === overlay) closeImage();
+        });
+
+        document.addEventListener("keydown", handleKeyboard);
+
+        // Mobilos lapozás érintéssel
+        let touchStartX = 0;
+
+        overlay.addEventListener("touchstart", event => {
+            touchStartX = event.changedTouches[0].screenX;
+        }, { passive: true });
+
+        overlay.addEventListener("touchend", event => {
+            const touchEndX = event.changedTouches[0].screenX;
+            const difference = touchEndX - touchStartX;
+
+            if (Math.abs(difference) > 50) {
+                difference < 0 ? nextImage() : previousImage();
+            }
+        }, { passive: true });
+    }
+
     overlay.style.display = "flex";
-    overlay.style.alignItems = "center";
-    overlay.style.justifyContent = "center";
-    overlay.style.zIndex = "99999";
-    overlay.style.cursor = "zoom-out";
-    overlay.style.padding = "20px";
-    overlay.style.boxSizing = "border-box";
+    updateLightbox();
+}
 
-    const img = document.createElement("img");
-    img.src = url;
-    img.alt = alt;
-    img.style.maxWidth = "100%";
-    img.style.maxHeight = "100%";
-    img.style.objectFit = "contain";
+function updateLightbox() {
+    const overlay = document.getElementById("lightbox");
+    const image = activeImages[currentIndex];
 
-    overlay.appendChild(img);
-    document.body.appendChild(overlay);
+    if (!overlay || !image) return;
 
-    overlay.addEventListener("click", () => {
-        overlay.remove();
-    });
+    const img = overlay.querySelector(".lightbox-image");
+    img.src = image.url;
+    img.alt = image.categoryName;
 
-    document.addEventListener("keydown", function closeOnEscape(event) {
-        if (event.key === "Escape") {
-            overlay.remove();
-            document.removeEventListener("keydown", closeOnEscape);
-        }
-    });
+    overlay.querySelector(".lightbox-counter").textContent =
+        `${currentIndex + 1} / ${activeImages.length}`;
+
+    overlay.querySelector(".lightbox-prev").style.visibility =
+        activeImages.length > 1 ? "visible" : "hidden";
+
+    overlay.querySelector(".lightbox-next").style.visibility =
+        activeImages.length > 1 ? "visible" : "hidden";
+}
+
+function previousImage() {
+    currentIndex =
+        (currentIndex - 1 + activeImages.length) % activeImages.length;
+    updateLightbox();
+}
+
+function nextImage() {
+    currentIndex = (currentIndex + 1) % activeImages.length;
+    updateLightbox();
+}
+
+function closeImage() {
+    const overlay = document.getElementById("lightbox");
+    if (overlay) overlay.style.display = "none";
+}
+
+function handleKeyboard(event) {
+    const overlay = document.getElementById("lightbox");
+
+    if (!overlay || overlay.style.display !== "flex") return;
+
+    if (event.key === "Escape") closeImage();
+    if (event.key === "ArrowLeft") previousImage();
+    if (event.key === "ArrowRight") nextImage();
 }
 
 // Galéria indítása
