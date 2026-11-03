@@ -71,7 +71,7 @@ body {
 
 .hero .eyebrow {
     color: #f2f1ed;
-    font-size: clamp(30px, 5.5vw, 68px);
+    font-size: clamp(76px, 11vw, 136px);
     line-height: 1.15;
     font-weight: 600;
     letter-spacing: 0;
@@ -276,11 +276,11 @@ footer {
     }
 
     .hero {
-        padding: 22px 6% 22px;
+        padding: 22px 6%;
     }
 
     .hero .eyebrow {
-        font-size: clamp(30px, 8vw, 42px);
+        font-size: clamp(60px, 16vw, 84px);
     }
 
     .portfolio {
