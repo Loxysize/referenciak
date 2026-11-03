@@ -1,4 +1,6 @@
 
+const gallery = document.getElementById("gallery");
+
 const categories = [
     { folder: "furdoszoba", name: "Fürdőszobák" },
     { folder: "terasz", name: "Teraszok" },
@@ -6,92 +8,36 @@ const categories = [
     { folder: "egyeb", name: "Egyéb munkák" }
 ];
 
-const gallery = document.getElementById("gallery");
-
 let allImages = [];
 let activeImages = [];
 let currentIndex = 0;
-let failedCategories = [];
 
-// Képek betöltése GitHubról
-async function loadCategory(category) {
-    const apiUrl =
-        `https://api.github.com/repos/loxysize/referenciak/contents/${category.folder}?ref=main`;
-
-    const response = await fetch(apiUrl);
-
-    if (!response.ok) {
-        throw new Error(
-            `${category.name}: HTTP ${response.status}`
-        );
-    }
-
-    const files = await response.json();
-
-    if (!Array.isArray(files)) {
-        throw new Error(`${category.name}: érvénytelen mappatartalom`);
-    }
-
-    const images = files.filter(file =>
-        file.type === "file" &&
-        /\.(webp|jpg|jpeg|png)$/i.test(file.name)
-    );
-
-    images.sort((a, b) =>
-        a.name.localeCompare(b.name, undefined, { numeric: true })
-    );
-
-    return images.map(file => ({
-        name: file.name,
-        folder: category.folder,
-        categoryName: category.name,
-        url: file.download_url
-    }));
-}
-
+// Képek betöltése az images.json fájlból
 async function loadGallery() {
-    gallery.innerHTML =
-        '<p class="loading">Képek betöltése...</p>';
+    gallery.innerHTML = '<p class="loading">Képek betöltése...</p>';
 
-    allImages = [];
-    failedCategories = [];
+    try {
+        const response = await fetch("./images.json");
 
-    const results = await Promise.allSettled(
-        categories.map(category => loadCategory(category))
-    );
-
-    results.forEach((result, index) => {
-        if (result.status === "fulfilled") {
-            allImages.push(...result.value);
-        } else {
-            failedCategories.push({
-                name: categories[index].name,
-                error: result.reason.message
-            });
-
-            console.error(
-                `Hiba a(z) ${categories[index].folder} mappa betöltésekor:`,
-                result.reason
-            );
+        if (!response.ok) {
+            throw new Error(`Képlista betöltési hiba: ${response.status}`);
         }
-    });
 
-    renderGallery("all");
+        const files = await response.json();
 
-    if (failedCategories.length > 0) {
-        const errorBox = document.createElement("p");
-        errorBox.className = "loading";
-        errorBox.textContent =
-            "Nem sikerült betölteni: " +
-            failedCategories.map(item => item.name).join(", ") +
-            ". A többi kategória képei továbbra is elérhetők.";
+        allImages = files.map(file => ({
+            name: file.name,
+            folder: file.folder,
+            categoryName: file.categoryName,
+            url: `./${file.folder}/${encodeURIComponent(file.name)}`
+        }));
 
-        gallery.prepend(errorBox);
-    }
+        renderGallery("all");
 
-    if (allImages.length === 0) {
+    } catch (error) {
+        console.error(error);
         gallery.innerHTML =
-            '<p class="loading">Egyetlen képet sem sikerült betölteni. Ellenőrizd a GitHub kapcsolatot és a képmappákat.</p>';
+            '<p class="loading">Nem sikerült betölteni a képlistát. Ellenőrizd az images.json fájlt.</p>';
     }
 }
 
@@ -101,9 +47,7 @@ function renderGallery(selectedCategory) {
 
     const selectedCategories = selectedCategory === "all"
         ? categories
-        : categories.filter(category =>
-            category.folder === selectedCategory
-        );
+        : categories.filter(category => category.folder === selectedCategory);
 
     activeImages = [];
 
@@ -151,7 +95,6 @@ function renderGallery(selectedCategory) {
                 const index = activeImages.findIndex(item =>
                     item.url === image.url
                 );
-
                 openImage(index);
             });
 
@@ -178,17 +121,6 @@ function filterWorks(category, button) {
     }
 
     renderGallery(category);
-
-    // A korábbi mappahibák jelzése szűrés után is megmarad
-    if (failedCategories.length > 0) {
-        const errorBox = document.createElement("p");
-        errorBox.className = "loading";
-        errorBox.textContent =
-            "Nem sikerült betölteni: " +
-            failedCategories.map(item => item.name).join(", ");
-
-        gallery.prepend(errorBox);
-    }
 }
 
 // Nagyított kép megnyitása
@@ -223,14 +155,11 @@ function openImage(index) {
             .addEventListener("click", nextImage);
 
         overlay.addEventListener("click", event => {
-            if (event.target === overlay) {
-                closeImage();
-            }
+            if (event.target === overlay) closeImage();
         });
 
         document.addEventListener("keydown", handleKeyboard);
 
-        // Mobilos lapozás érintéssel
         let touchStartX = 0;
 
         overlay.addEventListener("touchstart", event => {
@@ -242,9 +171,7 @@ function openImage(index) {
             const difference = touchEndX - touchStartX;
 
             if (Math.abs(difference) > 50) {
-                difference < 0
-                    ? nextImage()
-                    : previousImage();
+                difference < 0 ? nextImage() : previousImage();
             }
         }, { passive: true });
     }
@@ -261,13 +188,8 @@ function updateLightbox() {
     if (!overlay || !image) return;
 
     const img = overlay.querySelector(".lightbox-image");
-
     img.src = image.url;
     img.alt = image.categoryName;
-
-    img.onerror = () => {
-        console.error("A nagyított kép nem tölthető be:", image.url);
-    };
 
     overlay.querySelector(".lightbox-counter").textContent =
         `${currentIndex + 1} / ${activeImages.length}`;
@@ -284,8 +206,7 @@ function previousImage() {
     if (activeImages.length < 2) return;
 
     currentIndex =
-        (currentIndex - 1 + activeImages.length) %
-        activeImages.length;
+        (currentIndex - 1 + activeImages.length) % activeImages.length;
 
     updateLightbox();
 }
@@ -303,10 +224,7 @@ function nextImage() {
 // Nagyított kép bezárása
 function closeImage() {
     const overlay = document.getElementById("lightbox");
-
-    if (overlay) {
-        overlay.style.display = "none";
-    }
+    if (overlay) overlay.style.display = "none";
 }
 
 // Billentyűzetes vezérlés
